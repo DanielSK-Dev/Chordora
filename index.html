@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ChordLog">
+<meta name="apple-mobile-web-app-title" content="Chordora's Box">
 <meta name="theme-color" content="#0C0E13">
-<title>ChordLog</title>
+<title>Chordora</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -271,7 +271,7 @@ const HISTORY_DEFAULT = [
 // ══════════════════════════════════════════════════════════════
 // STATE / PERSISTENCE
 // ══════════════════════════════════════════════════════════════
-const SK = 'chordlog_v2';
+const SK = 'Chordora_v2';
 let S = {songs:SONGS_DEFAULT, history:HISTORY_DEFAULT, setlistIds:[]};
 
 function loadState() {
@@ -391,7 +391,7 @@ function renderDashboard() {
   return `<div style="padding:20px 16px 90px;overflow-y:auto">
     <div style="margin-bottom:24px">
       <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;font-family:var(--font-mono)">${today}</div>
-      <div style="font-size:34px;font-weight:700;color:var(--text);font-family:var(--font-serif);line-height:1.1">ChordLog</div>
+      <div style="font-size:34px;font-weight:700;color:var(--text);font-family:var(--font-serif);line-height:1.1">Chordora</div>
       <div style="font-size:13px;color:var(--muted);margin-top:4px">${S.songs.length} songs in library</div>
     </div>
 
