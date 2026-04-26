@@ -1,5 +1,5 @@
 // This is the Service Worker: sv.js
-const CACHE_NAME = 'chordora-v1';
+const CACHE_NAME = 'chordora-v2';
 const urlsToCache = [
   './index.html',
   './manifest.json',
