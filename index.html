@@ -61,6 +61,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .add-toggle{width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;transition:background .15s,color .15s}
 .add-toggle.in{background:var(--accent-dim);color:var(--accent)}
 .add-toggle.out{background:var(--border);color:var(--muted)}
+.add-toggle.danger{background:rgba(224,82,82,0.1);color:var(--danger)}
 
 /* CHORD SHEET */
 .chord-token{display:inline-flex;flex-direction:column;margin-right:1px}
@@ -208,12 +209,10 @@ function parseCPro(raw, shift = 0, flat = false) {
     line = line.trim();
     let m;
 
-    // 1. Metadata
     if ((m = line.match(/\{title:\s*(.*?)\s*\}/i))) { song.title = m[1]; continue; }
     if ((m = line.match(/\{(?:artist|subtitle):\s*(.*?)\s*\}/i))) { song.artist = m[1]; continue; }
     if ((m = line.match(/\{key:\s*(.*?)\s*\}/i))) { song.key = m[1]; continue; }
 
-    // 2. Section Starts (Hide the tags, use the labels)
     if ((m = line.match(/\{start_of_verse:?\s*(.*?)\s*\}/i)) || /\{sov\}/i.test(line)) {
       flush(); cur.label = m ? m[1] : 'Verse'; cur.isChorus = false; continue;
     }
@@ -224,22 +223,18 @@ function parseCPro(raw, shift = 0, flat = false) {
       flush(); cur.label = m[1] || 'Part'; cur.isChorus = false; continue;
     }
 
-    // 3. Section Ends (Just flush the content)
     if (/\{(?:end_of_verse|eov|end_of_chorus|eoc|end_of_part)\}/i.test(line)) {
       flush(); continue;
     }
 
-    // 4. Content Parsing
     if (!line && cur.lines.length) { flush(); continue; }
     if (!line) continue;
 
     const tokens = [];
-    // If a line is ONLY chords like [D][G][D][G]
     if (line.match(/^(\[[^\]]+\]\s*)+$/)) {
       const chords = line.match(/\[[^\]]+\]/g);
       chords.forEach(c => tokens.push({ chord: tChord(c.slice(1, -1), shift, flat), lyric: '\u00A0\u00A0\u00A0\u00A0' }));
     } else {
-      // Standard lyric + chord line
       const re = /([^\[]*)(?:\[([^\]]+)\]([^\[]*))?/g;
       let match;
       while ((match = re.exec(line)) !== null) {
@@ -260,7 +255,7 @@ function extractMeta(raw) {
     let m;
     if (!title  && (m=line.match(/\{title:\s*(.*?)\s*\}/i)))               title=m[1];
     if (!artist && (m=line.match(/\{(?:artist|subtitle):\s*(.*?)\s*\}/i))) artist=m[1];
-    if (!key    && (m=line.match(/\{key:\s*(.*?)\s*\}/i)))                 key=m[1];
+    if (!key    && (m=line.match(/\{key:\s*(.*?)\s*\}/i)))                  key=m[1];
   }
   return {title:title||'Untitled',artist:artist||'Unknown',key:key||'C'};
 }
@@ -303,13 +298,18 @@ const HISTORY_DEFAULT = [
 // ══════════════════════════════════════════════════════════════
 // STATE / PERSISTENCE
 // ══════════════════════════════════════════════════════════════
-const SK = 'Chordora_v2';
+const SK = 'Chordora_v3';
 let S = {songs:SONGS_DEFAULT, history:HISTORY_DEFAULT, setlistIds:[]};
 
 function loadState() {
   try {
     const r = localStorage.getItem(SK);
-    if (r) S = JSON.parse(r);
+    if (r) {
+      const parsed = JSON.parse(r);
+      S.songs = parsed.songs || SONGS_DEFAULT;
+      S.history = parsed.history || HISTORY_DEFAULT;
+      S.setlistIds = parsed.setlistIds || [];
+    }
   } catch(e) {}
 }
 function saveState() {
@@ -323,6 +323,13 @@ function toggleSetlist(id) {
   if (inSetlist(id)) S.setlistIds=S.setlistIds.filter(x=>x!==id);
   else S.setlistIds.push(id);
   saveState(); updateNavBadge();
+}
+function deleteSong(id) {
+  S.songs = S.songs.filter(s => s.id !== id);
+  S.setlistIds = S.setlistIds.filter(x => x !== id);
+  saveState();
+  toast('Song deleted');
+  renderInPlace();
 }
 function updateNavBadge() {
   const btn = document.getElementById('nav-setlist');
@@ -377,14 +384,24 @@ function keyBadgeHtml(song) {
 }
 function songCardHtml(song) {
   const isl=inSetlist(song.id);
-  return `<div class="song-card" onclick="openSong('${song.id}')">
-    ${keyBadgeHtml(song)}
-    <div style="flex:1;min-width:0">
-      <div class="song-title">${esc(song.title)}</div>
-      <div class="song-sub">${esc(song.artist)} · ${esc(song.tags[0]||'')}</div>
-    </div>
-    <button class="add-toggle ${isl?'in':'out'}" onclick="event.stopPropagation();toggleSetlist('${song.id}');renderInPlace()">${isl?'✓':'+'}</button>
-  </div>`;
+  return `
+    <div class="song-card" onclick="openSong('${song.id}')">
+      ${keyBadgeHtml(song)}
+      <div style="flex:1;min-width:0">
+        <div class="song-title">${esc(song.title)}</div>
+        <div class="song-sub">${esc(song.artist)} · ${esc(song.tags[0]||'')}</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="add-toggle danger" 
+          onclick="event.stopPropagation(); if(confirm('Delete this song from library?')) deleteSong('${song.id}')">
+          ✕
+        </button>
+        <button class="add-toggle ${isl?'in':'out'}" 
+          onclick="event.stopPropagation();toggleSetlist('${song.id}');renderInPlace()">
+          ${isl?'✓':'+'}
+        </button>
+      </div>
+    </div>`;
 }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -791,15 +808,9 @@ function saveEditSession() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// EXPORT / IMPORT
-// ══════════════════════════════════════════════════════════════
-// Exposed via header (not needed here — but backup/restore via data can be added)
-
-// ══════════════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════════════
 function renderInPlace() {
-  // Re-render current tab without resetting scroll on inner containers
   render();
 }
 function toast(msg) {
