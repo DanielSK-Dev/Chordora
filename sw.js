@@ -1,4 +1,3 @@
-// This is the Service Worker: sv.js
 const CACHE_NAME = 'chordora-v2';
 const urlsToCache = [
   './index.html',
@@ -6,7 +5,6 @@ const urlsToCache = [
   './icon.png'
 ];
 
-// 1. Install Event (Caches files)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -17,7 +15,6 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Activate Event (Cleans up old caches)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -33,12 +30,9 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. MANDATORY FETCH EVENT (Required for Installability)
-// This basic version allows the request to pass through to the network.
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request).catch(() => {
-      // If network fails, serve from cache
       return caches.match(event.request);
     })
   );
