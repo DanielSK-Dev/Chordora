@@ -1,6 +1,6 @@
 {
-  "name": "ChordLog",
-  "short_name": "ChordLog",
+  "name": "Chordora's Box",
+  "short_name": "Chordora's Box",
   "description": "A personal project for a guitar chord app with set lists.",
   "start_url": "./index.html",
   "display": "standalone",
