@@ -195,27 +195,59 @@ function tChord(chord, n, flat=false) {
     return tNote(root,n,flat)+rest;
   });
 }
-function parseCPro(raw, shift=0, flat=false) {
-  const song={title:'',artist:'',key:'',sections:[]};
-  let cur={label:'',isChorus:false,lines:[]};
-  const flush=()=>{ if(cur.lines.length) song.sections.push({...cur,lines:[...cur.lines]}); cur={label:'',isChorus:false,lines:[]}; };
-  for (const line of raw.split('\n')) {
+function parseCPro(raw, shift = 0, flat = false) {
+  const song = { title: '', artist: '', key: '', sections: [] };
+  let cur = { label: '', isChorus: false, lines: [] };
+  const flush = () => {
+    if (cur.lines.length || cur.label) song.sections.push({ ...cur, lines: [...cur.lines] });
+    cur = { label: '', isChorus: false, lines: [] };
+  };
+
+  const lines = raw.split('\n');
+  for (let line of lines) {
+    line = line.trim();
     let m;
-    if ((m=line.match(/\{title:\s*(.*?)\s*\}/i))) { song.title=m[1]; continue; }
-    if ((m=line.match(/\{(?:artist|subtitle):\s*(.*?)\s*\}/i))) { song.artist=m[1]; continue; }
-    if ((m=line.match(/\{key:\s*(.*?)\s*\}/i))) { song.key=m[1]; continue; }
-    if (/\{s(?:tart_of_chorus|oc)\}/i.test(line)) { flush(); cur={label:'Chorus',isChorus:true,lines:[]}; continue; }
-    if (/\{e(?:nd_of_chorus|oc)\}/i.test(line))   { flush(); continue; }
-    if (/\{s(?:tart_of_verse|ov)\}/i.test(line))  { flush(); cur={label:'Verse',isChorus:false,lines:[]}; continue; }
-    if (/\{e(?:nd_of_verse|ov)\}/i.test(line))    { flush(); continue; }
-    if (!line.trim()) { flush(); continue; }
-    const tokens=[];
-    if (!line.includes('[')) { tokens.push({chord:'',lyric:line}); }
-    else {
-      const fi=line.indexOf('[');
-      if (fi>0) tokens.push({chord:'',lyric:line.slice(0,fi)});
-      const re=/\[([^\]]+)\]([^\[]*)/g; let mm;
-      while((mm=re.exec(line))!==null) tokens.push({chord:tChord(mm[1],shift,flat),lyric:mm[2]});
+
+    // 1. Metadata
+    if ((m = line.match(/\{title:\s*(.*?)\s*\}/i))) { song.title = m[1]; continue; }
+    if ((m = line.match(/\{(?:artist|subtitle):\s*(.*?)\s*\}/i))) { song.artist = m[1]; continue; }
+    if ((m = line.match(/\{key:\s*(.*?)\s*\}/i))) { song.key = m[1]; continue; }
+
+    // 2. Section Starts (Hide the tags, use the labels)
+    if ((m = line.match(/\{start_of_verse:?\s*(.*?)\s*\}/i)) || /\{sov\}/i.test(line)) {
+      flush(); cur.label = m ? m[1] : 'Verse'; cur.isChorus = false; continue;
+    }
+    if ((m = line.match(/\{start_of_chorus:?\s*(.*?)\s*\}/i)) || /\{soc\}/i.test(line)) {
+      flush(); cur.label = m ? m[1] : 'Chorus'; cur.isChorus = true; continue;
+    }
+    if ((m = line.match(/\{start_of_part:?\s*(.*?)\s*\}/i))) {
+      flush(); cur.label = m[1] || 'Part'; cur.isChorus = false; continue;
+    }
+
+    // 3. Section Ends (Just flush the content)
+    if (/\{(?:end_of_verse|eov|end_of_chorus|eoc|end_of_part)\}/i.test(line)) {
+      flush(); continue;
+    }
+
+    // 4. Content Parsing
+    if (!line && cur.lines.length) { flush(); continue; }
+    if (!line) continue;
+
+    const tokens = [];
+    // If a line is ONLY chords like [D][G][D][G]
+    if (line.match(/^(\[[^\]]+\]\s*)+$/)) {
+      const chords = line.match(/\[[^\]]+\]/g);
+      chords.forEach(c => tokens.push({ chord: tChord(c.slice(1, -1), shift, flat), lyric: '\u00A0\u00A0\u00A0\u00A0' }));
+    } else {
+      // Standard lyric + chord line
+      const re = /([^\[]*)(?:\[([^\]]+)\]([^\[]*))?/g;
+      let match;
+      while ((match = re.exec(line)) !== null) {
+        if (match.index === re.lastIndex) re.lastIndex++;
+        const [_, pre, chord, post] = match;
+        if (pre) tokens.push({ chord: '', lyric: pre });
+        if (chord) tokens.push({ chord: tChord(chord, shift, flat), lyric: post || '\u00A0' });
+      }
     }
     if (tokens.length) cur.lines.push(tokens);
   }
