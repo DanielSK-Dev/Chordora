@@ -446,7 +446,7 @@ function renderDashboard() {
   return `<div style="padding:20px 16px 90px;overflow-y:auto">
     <div style="margin-bottom:24px">
       <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;font-family:var(--font-mono)">${today}</div>
-      <div style="font-size:34px;font-weight:700;color:var(--text);font-family:var(--font-serif);line-height:1.1">Chordoras Box</div>
+      <div style="font-size:34px;font-weight:700;color:var(--text);font-family:var(--font-serif);line-height:1.1">Chordora's Box</div>
       <div style="font-size:13px;color:var(--muted);margin-top:4px">${S.songs.length} songs in library</div>
     </div>
 
@@ -919,11 +919,6 @@ function toast(msg) {
 // ══════════════════════════════════════════════════════════════
 loadState();
 render();
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
 </script>
 </body>
 </html>
