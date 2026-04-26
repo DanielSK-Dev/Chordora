@@ -1,0 +1,24 @@
+{
+  "name": "Chordora",
+  "short_name": "Chordora",
+  "description": "Guitar chord sheets and setlist manager for worship & Bible study",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0C0E13",
+  "theme_color": "#0C0E13",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  "categories": ["music", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Today's Set",
+      "url": "./index.html",
+      "description": "Open the setlist"
+    }
+  ]
+}
