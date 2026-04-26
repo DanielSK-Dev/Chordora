@@ -723,7 +723,7 @@ function startScroll() {
     if(scrollLastT!==null && el){
       const dt=Math.min((t-scrollLastT)/1000,0.1);
       // Slowest (10) = ~40px/s (comfortable reading), fastest (90) = ~220px/s
-      const pps=2+((scrollSpeed-10)/80)**2*78;
+      const pps=2+((scrollSpeed-10)/80)**2*18;
       scrollAccum+=pps*dt;
       const px=Math.floor(scrollAccum);
       if(px>=1){ el.scrollBy(0,px); scrollAccum-=px; }
