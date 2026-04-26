@@ -1,24 +1,28 @@
 {
-  "name": "Chordora",
-  "short_name": "Chordora",
-  "description": "Guitar chord sheets and setlist manager for worship & Bible study",
+  "name": "ChordLog",
+  "short_name": "ChordLog",
+  "description": "A personal project for a guitar chord app with set lists.",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0C0E13",
   "theme_color": "#0C0E13",
-  "orientation": "portrait",
   "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
     {
       "src": "./icon.png",
       "sizes": "512x512",
       "type": "image/png"
-    }
-  "categories": ["music", "utilities"],
-  "shortcuts": [
+    },
     {
-      "name": "Today's Set",
-      "url": "./index.html",
-      "description": "Open the setlist"
+      "src": "./icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
